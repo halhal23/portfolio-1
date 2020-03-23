@@ -46,6 +46,7 @@ jobs:
           command: bundle exec rspec
 
   # railsイメージをビルドし、ECRへPUSH
+jobs:
   rails-deploy:
     steps:
       - aws-ecr/build-and-push-image:
@@ -70,7 +71,6 @@ jobs:
 
 workflows:
   version: 2
-  
   rails-test-and-deploy:
     jobs:
       - test
