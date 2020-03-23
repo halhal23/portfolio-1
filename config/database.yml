@@ -14,6 +14,10 @@ test:
   <<: *default
   database: webapp_test
 
+# production:
+#   <<: *default
+#   database: webapp_production
+
 production:
   <<: *default
   database: <%= ENV['DB_DATABASE'] %>

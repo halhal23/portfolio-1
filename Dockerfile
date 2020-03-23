@@ -17,5 +17,7 @@ RUN bundle install
 
 ADD . /webapp
 
+RUN rails assets:precompile
+
 RUN mkdir -p tmp/sockets
 CMD bundle exec puma -C config/puma.rb
