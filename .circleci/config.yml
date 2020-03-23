@@ -2,6 +2,7 @@ version: 2.1
 orbs:
   aws-ecr: circleci/aws-ecr@6.7.0
   aws-ecs: circleci/aws-ecs@1.1.0
+  aws-cli: circleci/aws-cli@0.1.16
 
 jobs:
   test:
@@ -58,13 +59,26 @@ jobs:
           dockerfile: ./Dockerfile
           repo: webapp-rails
           tag: "${CIRCLE_SHA1}"
-      - aws-ecs/deploy-service-update:
-          requires:
-            - aws-ecr/build-and-push-image
-          family: 'neptune-task' # ECSのタスク定義名
-          cluster-name: '${ECS_ARN}' #ECSのクラスターのARN
-          service-name: 'hello-service-3' #サービス名
+      - checkout
+      - aws-cli/install
+      - aws-cli/setup:
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          aws-region: AWS_REGION
+      - aws-ecs/update-service:
+          family: 'neptune-task'
+          cluster-name: '${ECS_ARN}'
+          service-name: 'hello-service-3'
           container-image-name-updates: "container=rails-v9,tag=${CIRCLE_SHA1}"
+          # max-poll-attempts: 300
+          # poll-interval: 10
+      # - aws-ecs/deploy-service-update:
+      #     requires:
+      #       - aws-ecr/build-and-push-image
+      #     family: 'neptune-task' # ECSのタスク定義名
+      #     cluster-name: '${ECS_ARN}' #ECSのクラスターのARN
+      #     service-name: 'hello-service-3' #サービス名
+      #     container-image-name-updates: "container=rails-v9,tag=${CIRCLE_SHA1}"
 
 workflows:
   rails-test-and-deploy:
