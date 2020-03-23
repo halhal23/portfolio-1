@@ -44,11 +44,11 @@ jobs:
           name: RSpecのテストを実行
           command: bundle exec rspec
 
-workflows:
-  version: 2
-  test_and_deploy:
-    jobs:
-      - test:
+# workflows:
+#   version: 2
+#   test_and_deploy:
+#     jobs:
+#       - test:
       # dockerイメージのビルド & ECRへプッシュ
       # - aws-ecr/build-and-push-image:
       #     テストをパスしたら実行
