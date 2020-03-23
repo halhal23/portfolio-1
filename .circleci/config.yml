@@ -27,9 +27,9 @@ jobs:
       - run:
           name: context設定の環境変数
           command: |
-            echo "${DB_HOST}"
-            echo "${DB_USERNAME}"
-            echo "${DB_PASSWORD}"
+            echo "${MYSQL_PASSWORD}"
+            echo "${MYSQL_USER}"
+            echo "${MYSQL_HOST}"
       - save_cache:
           name: bundle installの結果をキャッシュ
           paths: ./vendor/bundle
