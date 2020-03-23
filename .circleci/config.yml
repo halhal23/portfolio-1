@@ -44,54 +44,10 @@ jobs:
       - run:
           name: RSpecのテストを実行
           command: bundle exec rspec
-  
-  # イメージをビルドし、ECRへPUSH
-  # build-stg-image-and-push:
-  #   executor: container
-  #   steps:
-  #     - aws-ecr/build-and-push-image:
-  #         aws-access-key-id: AWS_ACCESS_KEY_ID
-  #         aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-  #         region: AWS_REGION
-  #         repo: '${ECR_REPO_NAME}'
-  #         extra-build-args: --target apps
-  #         attach-workspace: true
-  #         setup-remote-docker: true
-
-  
-
-workflows:
-  version: 2
-
-  # テストとnginxイメージをビルドし、ECRへPUSH
-  # nginx-deploy:
-  #   jobs:
-  #     - test
-  #     - aws-ecr/build-and-push-image:
-  #         requires:
-  #           - test
-  #         account-url: AWS_ECR_ACCOUNT_URL
-  #         region: AWS_REGION
-  #         aws-access-key-id: AWS_ACCESS_KEY_ID
-  #         aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-  #         create-repo: true
-  #         dockerfile: ./containers/nginx/Dockerfile
-  #         repo: webapp-nginx
-  #         tag: "${CIRCLE_SHA1}"
-  #         filters:
-  #           branches:
-  #             only: master
-  #     - aws-ecs/deploy-service-update:
-  #         requires:
-  #           - aws-ecr/build-and-push-image
-  #         family: 'neptune-task' # ECSのタスク定義名
-  #         cluster-name: '${ECS_ARN}'  #ECSのクラスターのARN
-  #         service-name: 'hello-service-3'  #サービス名
-  #         container-image-name-updates: "container=nginx,tag=${CIRCLE_SHA1}"
+          
   # railsイメージをビルドし、ECRへPUSH
-  rails-test-and-deploy:
-    jobs:
-      - test
+  rails-deploy:
+    steps:
       - aws-ecr/build-and-push-image:
           requires:
             - test
@@ -113,3 +69,13 @@ workflows:
           cluster-name: '${ECS_ARN}' #ECSのクラスターのARN
           service-name: 'hello-service-3' #サービス名
           container-image-name-updates: "container=rails-v9,tag=${CIRCLE_SHA1}"
+
+workflows:
+  version: 2
+  
+  rails-test-and-deploy:
+    jobs:
+      - test
+      - rails-deploy:
+        requires:
+          - test
