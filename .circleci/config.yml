@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  aws-ecr: circleci/aws-ecr@6.0.0
+  aws-ecr: circleci/aws-ecr@6.7.0
   aws-ecs: circleci/aws-ecs@1.1.0
 
 jobs:
@@ -44,30 +44,73 @@ jobs:
       - run:
           name: RSpecのテストを実行
           command: bundle exec rspec
+  
+  # イメージをビルドし、ECRへPUSH
+  # build-stg-image-and-push:
+  #   executor: container
+  #   steps:
+  #     - aws-ecr/build-and-push-image:
+  #         aws-access-key-id: AWS_ACCESS_KEY_ID
+  #         aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+  #         region: AWS_REGION
+  #         repo: '${ECR_REPO_NAME}'
+  #         extra-build-args: --target apps
+  #         attach-workspace: true
+  #         setup-remote-docker: true
+
+  
 
 workflows:
   version: 2
   test_and_deploy:
     jobs:
       - test
-      # dockerイメージのビルド & ECRへプッシュ
-      # - aws-ecr/build-and-push-image:
-      #     テストをパスしたら実行
-      #     requires:
-      #       - test
-      #     filters:
-      #       branches:
-      #         only: master
-      #     region: AWS_REGION
-      #     account-url: AWS_ECR_ACCOUNT_URL
-      #     repo: '${MY_APP}'
-      #     tag: "${CIRCLE_SHA1}"
-      # ECSで新リビジョンのタスク定義を作成し、サービスに指定するタスク定義のリビジョンを最新に更新する
-      # - aws-ecs/deploy-service-update:
-      #     イメージのビルド & プッシュが成功したら実行
-      #     requires:
-      #       - aws-ecr/build-and-push-image
-      #     family: '${ECS_TASK}'
-      #     cluster-name: '${ECS_CLUSTER}'
-      #     service-name: '${ECS_SERVICE}'
-      #     container-image-name-updates: 'container=app,image-and-tag=${AWS_ECR_ACCOUNT_URL}/${MY_APP}:${CIRCLE_SHA1}'
+
+  # nginxイメージをビルドし、ECRへPUSH
+  nginx-deploy:
+    jobs:
+      - aws-ecr/build-and-push-image:
+          requires:
+            - test
+          account-url: AWS_ECR_ACCOUNT_URL
+          region: AWS_REGION
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          create-repo: true
+          dockerfile: ./containers/nginx
+          repo: webapp-nginx
+          tag: "${CIRCLE_SHA1}"
+          filters:
+            branches:
+              only: master
+      - aws-ecs/deploy-service-update:
+          requires:
+            - aws-ecr/build-and-push-image
+          family: 'neptune-task' # ECSのタスク定義名
+          cluster-name: '${ECS_ARN}'  #ECSのクラスターのARN
+          service-name: 'hello-service-3'  #サービス名
+          container-image-name-updates: "container=webapp-nginx,tag=${CIRCLE_SHA1}"
+  # railsイメージをビルドし、ECRへPUSH
+  rails-deploy:
+    jobs:
+      - aws-ecr/build-and-push-image:
+          requires:
+            - test
+          account-url: AWS_ECR_ACCOUNT_URL
+          region: AWS_REGION
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          create-repo: true
+          dockerfile: .
+          repo: webapp-rails
+          tag: "${CIRCLE_SHA1}"
+          filters:
+            branches:
+              only: master
+      - aws-ecs/deploy-service-update:
+          requires:
+            - aws-ecr/build-and-push-image
+          family: 'neptune-task' # ECSのタスク定義名
+          cluster-name: '${ECS_ARN}' #ECSのクラスターのARN
+          service-name: 'hello-service-3' #サービス名
+          container-image-name-updates: "container=webapp-rails,tag=${CIRCLE_SHA1}"
