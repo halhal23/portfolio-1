@@ -6,6 +6,9 @@
   <h1>本番環境です。おめでとうございます。</h1>
 <% end %>
 
+<% if @lesson.present? %>
+  <h1><%= @lesson.name %></h1>
+<% end %>
 <% if @samples.present? %>
   <% @samples.each do |s| %>
     <h3><%= s.name %></h3>
