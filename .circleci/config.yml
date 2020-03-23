@@ -70,7 +70,6 @@ jobs:
           container-image-name-updates: "container=rails-v9,tag=${CIRCLE_SHA1}"
 
 workflows:
-  version: 2
   rails-test-and-deploy:
     jobs:
       - test
