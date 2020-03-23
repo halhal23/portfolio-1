@@ -48,6 +48,7 @@ jobs:
 
   # railsイメージをビルドし、ECRへPUSH
   rails-deploy:
+    executor: docker  
     steps:
       - aws-ecr/build-and-push-image:
           account-url: AWS_ECR_ACCOUNT_URL
