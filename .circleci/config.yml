@@ -71,7 +71,7 @@ workflows:
     jobs:
       - aws-ecr/build-and-push-image:
           requires:
-            - test
+            - test_and_deploy
           account-url: AWS_ECR_ACCOUNT_URL
           region: AWS_REGION
           aws-access-key-id: AWS_ACCESS_KEY_ID
@@ -95,7 +95,7 @@ workflows:
     jobs:
       - aws-ecr/build-and-push-image:
           requires:
-            - test
+            - test_and_deploy
           account-url: AWS_ECR_ACCOUNT_URL
           region: AWS_REGION
           aws-access-key-id: AWS_ACCESS_KEY_ID
