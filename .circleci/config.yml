@@ -74,5 +74,5 @@ workflows:
     jobs:
       - test
       - rails-deploy:
-        requires:
-          - test
+          requires:
+            - test
