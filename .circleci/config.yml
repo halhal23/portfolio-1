@@ -64,32 +64,32 @@ workflows:
   version: 2
 
   # テストとnginxイメージをビルドし、ECRへPUSH
-  nginx-deploy:
-    jobs:
-      - test
-      - aws-ecr/build-and-push-image:
-          requires:
-            - test
-          account-url: AWS_ECR_ACCOUNT_URL
-          region: AWS_REGION
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          create-repo: true
-          dockerfile: ./containers/nginx/Dockerfile
-          repo: webapp-nginx
-          tag: "${CIRCLE_SHA1}"
-          filters:
-            branches:
-              only: master
-      - aws-ecs/deploy-service-update:
-          requires:
-            - aws-ecr/build-and-push-image
-          family: 'neptune-task' # ECSのタスク定義名
-          cluster-name: '${ECS_ARN}'  #ECSのクラスターのARN
-          service-name: 'hello-service-3'  #サービス名
-          container-image-name-updates: "container=webapp-nginx,tag=${CIRCLE_SHA1}"
+  # nginx-deploy:
+  #   jobs:
+  #     - test
+  #     - aws-ecr/build-and-push-image:
+  #         requires:
+  #           - test
+  #         account-url: AWS_ECR_ACCOUNT_URL
+  #         region: AWS_REGION
+  #         aws-access-key-id: AWS_ACCESS_KEY_ID
+  #         aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+  #         create-repo: true
+  #         dockerfile: ./containers/nginx/Dockerfile
+  #         repo: webapp-nginx
+  #         tag: "${CIRCLE_SHA1}"
+  #         filters:
+  #           branches:
+  #             only: master
+  #     - aws-ecs/deploy-service-update:
+  #         requires:
+  #           - aws-ecr/build-and-push-image
+  #         family: 'neptune-task' # ECSのタスク定義名
+  #         cluster-name: '${ECS_ARN}'  #ECSのクラスターのARN
+  #         service-name: 'hello-service-3'  #サービス名
+  #         container-image-name-updates: "container=nginx,tag=${CIRCLE_SHA1}"
   # railsイメージをビルドし、ECRへPUSH
-  rails-deploy:
+  rails-test-and-deploy:
     jobs:
       - test
       - aws-ecr/build-and-push-image:
@@ -112,4 +112,4 @@ workflows:
           family: 'neptune-task' # ECSのタスク定義名
           cluster-name: '${ECS_ARN}' #ECSのクラスターのARN
           service-name: 'hello-service-3' #サービス名
-          container-image-name-updates: "container=webapp-rails,tag=${CIRCLE_SHA1}"
+          container-image-name-updates: "container=rails-v9,tag=${CIRCLE_SHA1}"
