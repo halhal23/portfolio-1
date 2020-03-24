@@ -7,10 +7,10 @@ orbs:
 executors:
   container:
     docker:
-      - image: "065819813599.dkr.ecr.ap-northeast-1.amazonaws.com/webapp-rails:${CIRCLE_SHA1}"
+      - image: 065819813599.dkr.ecr.ap-northeast-1.amazonaws.com/webapp-rails:$CIRCLE_SHA1
         aws_auth:
-          aws_access_key_id: AWS_ACCESS_KEY_ID  # can specify string literal values
-          aws_secret_access_key: AWS_SECRET_ACCESS_KEY  # or project UI en      
+          aws_access_key_id: $AWS_ACCESS_KEY_ID  # can specify string literal values
+          aws_secret_access_key: $AWS_SECRET_ACCESS_KEY  # or project UI en      
 
 jobs:
   test:
