@@ -1,0 +1,8 @@
+{
+  "containerOverrides": [
+    {
+      "name": "db:migrateを実行",
+      "command": ["rails", "db:migrate"]
+    }
+  ]
+}

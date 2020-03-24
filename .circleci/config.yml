@@ -2,6 +2,12 @@ version: 2.1
 orbs:
   aws-ecr: circleci/aws-ecr@6.7.0
   aws-ecs: circleci/aws-ecs@1.1.0
+  aws-cli: circleci/aws-cli@0.1.16
+
+executors:
+  container:
+    docker:
+      - image: circleci/ruby:2.5.1-node-browsers
 
 jobs:
   test:
@@ -44,11 +50,30 @@ jobs:
       - run:
           name: RSpecのテストを実行
           command: bundle exec rspec
+  #マイグレーションを実行        
+  db-migrate-on-task-run:
+    executor: container
+    steps:
+      - checkout
+      - aws-cli/setup:
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          aws-region: AWS_REGION
+      - run:
+          name: "db migrate"
+          command: |
+            aws ecs run-task --region $AWS_REGION \
+              --cluster ${ECS_ARN} \
+              --task-definition neptune-task \
+              --overrides file://run_task_db_migrate.json
+
+
 workflows:
   version: 2
   rails-test-and-deploy:
     jobs:
       - test
+      # ECRへイメージをPUSH
       - aws-ecr/build-and-push-image:
           requires:
             - test
@@ -63,10 +88,32 @@ workflows:
           filters:
             branches:
               only: master
-      - aws-ecs/deploy-service-update:
+      - db-migrate-on-task-run:
           requires:
             - aws-ecr/build-and-push-image
+          filters:
+            branches:
+              only: master
+
+
+      # マイグレーションを実行
+      # - aws-ecs/run-task:
+      #     requires:
+      #       - aws-ecr/build-and-push-image
+      #     aws-access-key-id: AWS_ACCESS_KEY_ID
+      #     aws-secret-access-key: AWS_SECRET_ACCESS_KEY         
+      #     region: AWS_REGION
+      #     cluster: '${ECS_ARN}'
+      #     task-definition: 'neptune-task:${CIRCLE_SHA1}'
+
+
+      - aws-ecs/deploy-service-update:
+          requires:
+            - db-migrate-on-task-run
           family: 'neptune-task' # ECSのタスク定義名
           cluster-name: '${ECS_ARN}' #ECSのクラスターのARN
           service-name: 'hello-service-3' #サービス名
           container-image-name-updates: "container=rails-v9,tag=${CIRCLE_SHA1}"
+          filters:
+            branches:
+              only: master
