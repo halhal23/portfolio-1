@@ -1,7 +1,7 @@
 {
   "containerOverrides": [
     {
-      "name": "db:migrateを実行",
+      "name": "rails-v9",
       "command": ["rails", "db:migrate"]
     }
   ]
