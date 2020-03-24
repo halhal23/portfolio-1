@@ -1,0 +1,2 @@
+class TestMigrate < ApplicationRecord
+end
