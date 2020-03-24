@@ -54,22 +54,22 @@ jobs:
           name: RSpecのテストを実行
           command: bundle exec rspec
   #マイグレーションを実行        
-  db-migrate-on-task-run:
-    executor: container
-    working_directory: ~/webapp
-    steps:
-      - checkout
-      - aws-cli/setup:
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          aws-region: AWS_REGION
-      - run:
-          name: "db migrate"
-          command: |
-            aws ecs run-task --region $AWS_REGION \
-              --cluster $ECS_ARN \
-              --task-definition neptune-task \
-              --overrides file://scripts/run_task_db_migrate.json
+  # db-migrate-on-task-run:
+  #   executor: container
+  #   working_directory: ~/webapp
+  #   steps:
+  #     - checkout
+  #     - aws-cli/setup:
+  #         aws-access-key-id: AWS_ACCESS_KEY_ID
+  #         aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+  #         aws-region: AWS_REGION
+  #     - run:
+  #         name: "db migrate"
+  #         command: |
+  #           aws ecs run-task --region $AWS_REGION \
+  #             --cluster $ECS_ARN \
+  #             --task-definition neptune-task \
+  #             --overrides file://scripts/run_task_db_migrate.json
 
 
 workflows:
@@ -92,12 +92,12 @@ workflows:
           filters:
             branches:
               only: master
-      - db-migrate-on-task-run:
-          requires:
-            - aws-ecr/build-and-push-image
-          filters:
-            branches:
-              only: master
+      # - db-migrate-on-task-run:
+      #     requires:
+      #       - aws-ecr/build-and-push-image
+      #     filters:
+      #       branches:
+      #         only: master
 
 
       # マイグレーションを実行
