@@ -63,7 +63,7 @@ jobs:
           name: "db migrate"
           command: |
             aws ecs run-task --region $AWS_REGION \
-              --cluster ${ECS_ARN} \
+              --cluster $ECS_ARN \
               --task-definition neptune-task \
               --overrides file://run_task_db_migrate.json
 
