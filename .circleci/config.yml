@@ -4,13 +4,11 @@ orbs:
   aws-ecs: circleci/aws-ecs@1.1.0
   aws-cli: circleci/aws-cli@0.1.16
 
-# executors:
-#   container:
-#     docker:
-#       - image: 065819813599.dkr.ecr.ap-northeast-1.amazonaws.com/webapp-rails:$CIRCLE_SHA1
-#         aws_auth:
-#           aws_access_key_id: $AWS_ACCESS_KEY_ID  # can specify string literal values
-#           aws_secret_access_key: $AWS_SECRET_ACCESS_KEY  # or project UI en      
+executors:
+  container:
+    docker:
+      - image: circleci/ruby:2.5.1-node-browsers
+ 
 
 jobs:
   test:
@@ -54,23 +52,22 @@ jobs:
           name: RSpecのテストを実行
           command: bundle exec rspec
   #マイグレーションを実行        
-  # db-migrate-on-task-run:
-  #   executor: container
-  #   working_directory: ~/webapp
-  #   steps:
-  #     - checkout
-  #     - aws-cli/setup:
-  #         aws-access-key-id: AWS_ACCESS_KEY_ID
-  #         aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-  #         aws-region: AWS_REGION
-  #     - run:
-  #         name: "db migrate"
-  #         command: |
-  #           aws ecs run-task --region $AWS_REGION \
-  #             --cluster $ECS_ARN \
-  #             --task-definition neptune-task \
-  #             --overrides file://scripts/run_task_db_migrate.json
-
+  db-migrate-on-task-run:
+    executor: container
+    working_directory: ~/webapp
+    steps:
+      - checkout
+      - aws-cli/setup:
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          aws-region: AWS_REGION
+      - run:
+          name: "db migrate"
+          command: |
+            aws ecs run-task --region $AWS_REGION \
+              --cluster $ECS_ARN \
+              --task-definition neptune-task \
+              --overrides file://scripts/run_task_db_migrate.json
 
 workflows:
   version: 2
@@ -92,12 +89,12 @@ workflows:
           filters:
             branches:
               only: master
-      # - db-migrate-on-task-run:
-      #     requires:
-      #       - aws-ecr/build-and-push-image
-      #     filters:
-      #       branches:
-      #         only: master
+      - db-migrate-on-task-run:
+          requires:
+            - aws-ecr/build-and-push-image
+          filters:
+            branches:
+              only: master
 
 
       # マイグレーションを実行
@@ -121,3 +118,4 @@ workflows:
           filters:
             branches:
               only: master
+
