@@ -89,6 +89,12 @@ workflows:
           filters:
             branches:
               only: master
+      - db-migrate-on-task-run:
+          requires:
+            - aws-ecr/build-and-push-image
+          filters:
+            branches:
+              only: master
       # マイグレーションを実行
       # - aws-ecs/run-task:
       #     requires:
@@ -100,17 +106,11 @@ workflows:
       #     task-definition: 'neptune-task:${CIRCLE_SHA1}'
       - aws-ecs/deploy-service-update:
           requires:
-            - aws-ecr/build-and-push-image
+            - db-migrate-on-task-run
           family: 'neptune-task' # ECSのタスク定義名
           cluster-name: '${ECS_ARN}' #ECSのクラスターのARN
           service-name: 'hello-service-3' #サービス名
           container-image-name-updates: "container=rails-v9,tag=${CIRCLE_SHA1}"
-          filters:
-            branches:
-              only: master
-      - db-migrate-on-task-run:
-          requires:
-            - aws-ecs/deploy-service-update
           filters:
             branches:
               only: master
